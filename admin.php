@@ -71,7 +71,10 @@
         $stmt4 = $conn->prepare("SELECT * FROM categories ");
         $stmt4->execute();
         $categories_details = $stmt4->fetchAll(PDO::FETCH_OBJ);
-        // var_dump($categories_details);
+    // top-story
+        $stmt7 = $conn->prepare("SELECT article.id AS id, title, top_story.created_at AS created_at FROM article JOIN top_story ON article.id = top_story.article_id;");
+        $stmt7->execute();
+        $topStory = $stmt7->fetchAll(PDO::FETCH_OBJ);
 
     // delete article
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'])) {
@@ -129,6 +132,11 @@
             exit;
 
         }
+    }
+
+    //add top stroy
+    if($_SERVER['REQUEST_METHOD'] === 'POST' && isset(&$_POST['top-story'])){
+
     }
 
     // author
@@ -1262,6 +1270,11 @@
                     <i class="fas fa-list"></i>
                     <span>Categories</span>
                 </div>
+                <div class="menu-item" data-page="top-stories-page">
+                    <i class="fas fa-list"></i>
+                    <span>Top Stories</span>
+                </div>
+
                 <div class="menu-item" data-page="authors-page">
                     <i class="fas fa-users"></i>
                     <span>Authors</span>
@@ -1532,6 +1545,7 @@
                             <table>
                                 <thead>
                                     <tr>
+                                        <th>id</th>
                                         <th>Title</th>
                                         <th>Author</th>
                                         <th>Category</th>
@@ -1544,6 +1558,7 @@
                                 <tbody>
                                     <?php foreach($allDetails as $list): ?>
                                             <tr>
+                                                <td><?php echo $list->article_id; ?></td>
                                                 <td><a href="./article.php?id=<?php echo $list->article_id; ?>"><?php echo $list->title; ?></a></td>
                                                 <td><?php echo $list->username; ?></td>
                                                 <td><?php echo $list->category; ?></td>
@@ -1655,6 +1670,83 @@
                                                 <form method="POST" action="" onsubmit="return confirm('Are you sure you want to delete this category?');">
                                                     <input type="hidden" name="delete_id" value="<?php echo $list->id; ?>">
                                                     <button class="action-btn" type="submit" name="delete_cat">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top-story Page -->
+                 <div id="top-stories-page" class="page">
+                    <div class="page-title">
+                        <h1>Top Story Management</h1>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-plus"></i> top story
+                        </button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Add Top Story</h2>
+                        </div>
+                        <div class="form-container">
+                            <form action="" method="post">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="top-name">Article Id</label>
+                                        <input type="text" id="top-name" name="top-name" placeholder="Enter article id...">
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button class="btn">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                    <button class="btn btn-primary" name="top-story" type="submit">
+                                        <i class="fas fa-save"></i> Save Story
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>All Top Stroy (<?php echo count($topStory); ?>)</h2>
+                            <div>
+                                <button class="btn" onClick="window.location.reload()">
+                                    <i class="fas fa-sync"></i> Refresh
+                                </button>                              
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>id</th>
+                                        <th>title</th>
+                                        <th>Last Updated</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach($topStory as $list): ?>
+                                        <tr>
+                                            <td><?php echo $list->id; ?></td>
+                                            <td><?php echo $list->title;?>
+                                            </td>
+                                            <td><?php $formanted = date("d M Y", strtotime    ($list->created_at));
+                                                echo $formanted; ?>
+                                            </td>
+                                            <td>
+                                                <form method="POST" action="" onsubmit="return confirm('Are you sure you want to delete this top story?');">
+                                                    <input type="hidden" name="delete_id" value="<?php echo $list->id; ?>">
+                                                    <button class="action-btn" type="submit" name="delete_top">
                                                         <i class="fas fa-trash-alt"></i>
                                                     </button>
                                                 </form>
