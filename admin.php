@@ -75,6 +75,14 @@
         $stmt7 = $conn->prepare("SELECT article.id AS id, title, top_story.created_at AS created_at FROM article JOIN top_story ON article.id = top_story.article_id;");
         $stmt7->execute();
         $topStory = $stmt7->fetchAll(PDO::FETCH_OBJ);
+    //featured
+        $stetment = $conn->prepare("SELECT article.id AS id, title, featured.created_at AS created_at FROM article JOIN featured ON article.id = featured.article_id;");
+        $stetment->execute();
+        $featured = $stetment->fetchAll(PDO::FETCH_OBJ);
+    //disclaimer
+        $stetment1 = $conn->prepare("SELECT id, content, created_at FROM disclaimer ORDER BY `created_at` DESC;"); 
+        $stetment1->execute();
+        $disclaimer = $stetment1->fetchAll(PDO::FETCH_OBJ);
 
     // delete article
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'])) {
@@ -135,9 +143,92 @@
     }
 
     //add top stroy
-    if($_SERVER['REQUEST_METHOD'] === 'POST' && isset(&$_POST['top-story'])){
+    if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['top-story'])){
+        $id = $_POST['top-id'];
+        $stmt8 = $conn->prepare("INSERT INTO top_story (article_id) VALUES(:id)");
+        $stmt8->execute([
+            ':id' => $id
+        ]);
+        header("Location: ". $_SERVER['PHP_SELF']);
+        exit;
 
     }
+
+    // delete top-stroy
+    if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_top'])){
+        $deleteId  = (int) $_POST['top_id'];
+        $stmt9 = $conn->prepare("DELETE FROM top_story WHERE article_id = :id");
+        $stmt9->bindParam(':id', $deleteId, PDO::PARAM_INT);
+        if($stmt9->execute()){
+            $_SESSION['flash_message'] = "Top-story deleted successfully!";
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
+
+        } else {
+            $_SESSION['flash_message'] = "Failed to delete Top-story.";
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
+
+        }
+    }
+
+    //add featured stroy
+    if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['featured-story'])){
+        $id = $_POST['featured-id'];
+        $stmt10 = $conn->prepare("INSERT INTO featured (article_id) VALUES(:id)");
+        $stmt10->execute([
+            ':id' => $id
+        ]);
+        header("Location: ". $_SERVER['PHP_SELF']);
+        exit;
+
+    }
+
+    // delete featured-stroy
+    if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_featured'])){
+        $deleteId  = (int) $_POST['featured_id'];
+        $stmt11 = $conn->prepare("DELETE FROM featured WHERE article_id = :id");
+        $stmt11->bindParam(':id', $deleteId, PDO::PARAM_INT);
+        if($stmt11->execute()){
+            $_SESSION['flash_message'] = "featured-story deleted successfully!";
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
+
+        } else {
+            $_SESSION['flash_message'] = "Failed to delete featured-story.";
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
+
+        }
+    }  
+
+    // disclaimer
+    if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disclaimer'])){
+        $content = $_POST['desc'];
+        $stetment1 = $conn->prepare("INSERT INTO disclaimer (content) VALUES(?) ");
+        $stetment1->execute([$content]);
+        header("Location: ". $_SERVER['PHP_SELF']);
+        exit;
+    }
+
+    //delete disclaimer
+    if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_disc'])){
+        $id = (int) $_POST['disc_id'];
+        $stetment1 = $conn->prepare("DELETE FROM disclaimer WHERE id = :id ");
+        $stetment1->bindParam(':id',$id, PDO::PARAM_INT);
+        if($stetment1->execute()){
+            $_SESSION['flash_message'] = "disclaimer deleted successfully!";
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
+
+        } else {
+            $_SESSION['flash_message'] = "Failed to delete disclaimer.";
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
+
+        }
+    } 
+
 
     // author
     $query = "SELECT 
@@ -210,6 +301,33 @@
         exit;
     }
     
+   // Update member
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_member'])) {
+        $id = $_SESSION['user_id'];
+        $name = trim($_POST['name']);
+        $email = trim($_POST['email']);
+        $password = trim($_POST['password']);
+        $img = trim($_POST['img']);
+
+        // Ensure the ID is valid
+        if ($id > 0 && !empty($name) && !empty($email)) {
+            // Only hash and update password if it's provided
+            if (!empty($password)) {
+                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+                $stmt = $conn->prepare("UPDATE admin SET name = ?, email = ?, password = ?, image = ? WHERE id = ?");
+                $stmt->execute([$name, $email, $hashedPassword, $img, $id]);
+            } else {
+                $stmt = $conn->prepare("UPDATE admin SET name = ?, email = ?, image = ? WHERE id = ?");
+                $stmt->execute([$name, $email, $img, $id]);
+            }
+
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
+        } else {
+            echo "Invalid input or missing ID.";
+        }
+    }
+
     // Admin
     $query1 = $conn->prepare("SELECT * FROM admin");
     $query1->execute();
@@ -1271,10 +1389,21 @@
                     <span>Categories</span>
                 </div>
                 <div class="menu-item" data-page="top-stories-page">
-                    <i class="fas fa-list"></i>
+                    <i class="fa-solid fa-window-restore"></i>
                     <span>Top Stories</span>
                 </div>
-
+                <div class="menu-item" data-page="featured-stories-page">
+                    <i class="fa-solid fa-diamond"></i>
+                    <span>Featured Stories</span>
+                </div>
+                <div class="menu-item" data-page="disclimer-page">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Disclaimer</span>
+                </div>
+                <div class="menu-item" data-page="Tranding-page">
+                    <i class="fa-solid fa-ranking-star"></i>
+                    <span>Tranding</span>
+                </div>
                 <div class="menu-item" data-page="authors-page">
                     <i class="fas fa-users"></i>
                     <span>Authors</span>
@@ -1286,6 +1415,10 @@
                 <div class="menu-item" data-page="admin-page">
                     <i class="fa-solid fa-user-tie"></i>
                     <span>Admin</span>
+                </div>
+                <div class="menu-item" data-page="update-page">
+                    <i class="fa-solid fa-user-pen"></i>
+                    <span>Update Profile</span>
                 </div>
                 <div class="menu-item" data-page="logout-page">
                     <i class="fas fa-sign-out-alt"></i>
@@ -1699,8 +1832,8 @@
                             <form action="" method="post">
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label for="top-name">Article Id</label>
-                                        <input type="text" id="top-name" name="top-name" placeholder="Enter article id...">
+                                        <label for="top-id">Article Id</label>
+                                        <input type="number" id="top-id" name="top-id" placeholder="Enter article id...">
                                     </div>
                                 </div>
                                 <div class="form-actions">
@@ -1745,8 +1878,161 @@
                                             </td>
                                             <td>
                                                 <form method="POST" action="" onsubmit="return confirm('Are you sure you want to delete this top story?');">
-                                                    <input type="hidden" name="delete_id" value="<?php echo $list->id; ?>">
+                                                    <input type="hidden" name="top_id" value="<?php echo $list->id; ?>">
                                                     <button class="action-btn" type="submit" name="delete_top">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Featured-story Page -->
+                 <div id="featured-stories-page" class="page">
+                    <div class="page-title">
+                        <h1>Featured Story Management</h1>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-plus"></i> featured story
+                        </button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Add featured Story</h2>
+                        </div>
+                        <div class="form-container">
+                            <form action="" method="post">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="featured-id">Article Id</label>
+                                        <input type="number" id="featured-id" name="featured-id" placeholder="Enter article id...">
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button class="btn">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                    <button class="btn btn-primary" name="featured-story" type="submit">
+                                        <i class="fas fa-save"></i> Save Story
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>All featured Stroy (<?php echo count($featured); ?>)</h2>
+                            <div>
+                                <button class="btn" onClick="window.location.reload()">
+                                    <i class="fas fa-sync"></i> Refresh
+                                </button>                              
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>id</th>
+                                        <th>title</th>
+                                        <th>Last Updated</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach($featured as $list): ?>
+                                        <tr>
+                                            <td><?php echo $list->id; ?></td>
+                                            <td><?php echo $list->title;?>
+                                            </td>
+                                            <td><?php $formanted = date("d M Y", strtotime    ($list->created_at));
+                                                echo $formanted; ?>
+                                            </td>
+                                            <td>
+                                                <form method="POST" action="" onsubmit="return confirm('Are you sure you want to delete this featured story?');">
+                                                    <input type="hidden" name="featured_id" value="<?php echo $list->id; ?>">
+                                                    <button class="action-btn" type="submit" name="delete_featured">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- Disclaimer Page -->
+                 <div id="disclimer-page" class="page">
+                    <div class="page-title">
+                        <h1>Disclaimer Management</h1>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Disclaimer
+                        </button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Add Disclaimer</h2>
+                        </div>
+                        <div class="form-container">
+                            <form action="" method="post">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="disc">Disclaimer</label>
+                                        <input type="text" id="disc" name="desc" placeholder="Enter disclaimer">
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button class="btn">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                    <button class="btn btn-primary" name="disclaimer" type="submit">
+                                        <i class="fas fa-save"></i> Save Disclaimer
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>All disclaimer (<?php echo count($disclaimer); ?>)</h2>
+                            <div>
+                                <button class="btn" onClick="window.location.reload()">
+                                    <i class="fas fa-sync"></i> Refresh
+                                </button>                              
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>id</th>
+                                        <th>content</th>
+                                        <th>Last Updated</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach($disclaimer as $list): ?>
+                                        <tr>
+                                            <td><?php echo $list->id; ?></td>
+                                            <td><?php echo $list->content;?>
+                                            </td>
+                                            <td><?php $formanted = date("d M Y", strtotime($list->created_at));
+                                                echo $formanted; ?>
+                                            </td>
+                                            <td>
+                                                <form method="POST" action="" onsubmit="return confirm('Are you sure you want to delete this disclaimer?');">
+                                                    <input type="hidden" name="disc_id" value="<?php echo $list->id; ?>">
+                                                    <button class="action-btn" type="submit" name="delete_disc">
                                                         <i class="fas fa-trash-alt"></i>
                                                     </button>
                                                 </form>
@@ -1819,15 +2105,18 @@
 
                 <!-- Add admin & author -->
                  <div id="members-page" class="page">
+                    <div class="page-title">
+                        <h1>Add Member</h1>
+                    </div>                    
                     <div class="card">
                         <div class="form-container">
-                            <form id="registrationForm" method="post" action="">
+                            <form class="form" method="post" action="">
                                 <div class="form-grid">
                                     <div>
                                         <div class="form-group">
                                             <label for="name">Full Name</label>
                                             <div class="input-with-icon">
-                                                <input type="text" id="name" name="name" class="form-control" placeholder="akt Doe">
+                                                <input type="text" class="name-input" name="name" class="form-control" placeholder="akt Doe">
                                             </div>
                                             <div class="error-message" id="name-error">Please enter your full name</div>
                                         </div>
@@ -1835,24 +2124,24 @@
                                         <div class="form-group">
                                             <label for="email">Email Address</label>
                                             <div class="input-with-icon">
-                                                <input type="email" id="email" name="email" class="form-control" placeholder="john@example.com">
+                                                <input type="email" id="email" class="email-input" name="email" class="form-control" placeholder="john@example.com">
                                             </div>
                                             <div class="error-message" id="email-error">Please enter a valid email</div>
                                         </div>
                                         
                                         <div class="form-group">
-                                            <label for="password">Password</label>
+                                            <label for="password">Create New Password</label>
                                             <div class="input-with-icon password-container">
-                                                <input type="password" id="password" class="form-control" name="password" placeholder="Create a strong password">
-                                                <button type="button" class="toggle-password" id="togglePassword">
+                                                <input type="password" id="password" class="password-input" class="form-control" name="password" placeholder="Create a strong password">
+                                                <button type="button" class="toggle-password">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             </div>
                                             <div class="password-strength">
-                                                <div class="strength-bar"><span id="strength-1"></span></div>
-                                                <div class="strength-bar"><span id="strength-2"></span></div>
-                                                <div class="strength-bar"><span id="strength-3"></span></div>
-                                                <div class="strength-bar"><span id="strength-4"></span></div>
+                                                <div class="strength-bar"><span class="strength-1"></span></div>
+                                                <div class="strength-bar"><span class="strength-2"></span></div>
+                                                <div class="strength-bar"><span class="strength-3"></span></div>
+                                                <div class="strength-bar"><span class="strength-4"></span></div>
                                             </div>
                                             <div class="strength-text" id="strength-text">Password strength</div>
                                             <div class="error-message" id="password-error">Password must be at least 8 characters</div>
@@ -1863,18 +2152,18 @@
                                         <div class="form-group">
                                             <label for="imgUrl">Profile Image URL</label>
                                             <div class="input-with-icon">
-                                                <input type="url" id="imgUrl" class="form-control" name="img" placeholder="https://example.com/photo.jpg">
+                                                <input type="url" id="imgUrl" class="img-url" class="form-control" name="img" placeholder="https://example.com/photo.jpg">
                                             </div>
                                             <div class="error-message" id="image-error">Please enter a valid image URL</div>
                                             
                                             <div class="image-preview-container">
-                                                <div class="image-preview" id="imagePreview">
+                                                <div class="image-preview">
                                                     <i class="fas fa-user"></i>
-                                                    <img src="" alt="Preview" id="previewImg">
+                                                    <img src="" alt="Preview" class="preview-img">
                                                 </div>
                                             </div>
                                         </div>
-                                        
+    
                                         <div class="form-group">
                                             <label for="role">Account Role</label>
                                             <div class="role-container">
@@ -1931,6 +2220,76 @@
                         </div>
                     </div>
                 </div>
+                <!-- Update profile -->
+                 <div id="update-page" class="page">
+                    <div class="page-title">
+                        <h1>Update Profile</h1>
+                    </div> 
+                    <div class="card">
+                        <div class="form-container">
+                            <form class="form" method="post" action="">
+                                <div class="form-grid">
+                                    <div>
+                                        <div class="form-group">
+                                            <label for="name">Full Name</label>
+                                            <div class="input-with-icon">
+                                                <input type="text" class="name-input" name="name" class="form-control" placeholder="akt Doe">
+                                            </div>
+                                            <div class="error-message" id="name-error">Please enter your full name</div>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="email">Email Address</label>
+                                            <div class="input-with-icon">
+                                                <input type="email" id="email" class="email-input" name="email" class="form-control" placeholder="john@example.com">
+                                            </div>
+                                            <div class="error-message" id="email-error">Please enter a valid email</div>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="password">Create New Password</label>
+                                            <div class="input-with-icon password-container">
+                                                <input type="password" id="password" class="password-input" class="form-control" name="password" placeholder="Create a strong password">
+                                                <button type="button" class="toggle-password" id="togglePassword">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                            <div class="password-strength">
+                                                <div class="strength-bar"><span class="strength-1"></span></div>
+                                                <div class="strength-bar"><span class="strength-2"></span></div>
+                                                <div class="strength-bar"><span class="strength-3"></span></div>
+                                                <div class="strength-bar"><span class="strength-4"></span></div>
+                                            </div>
+                                            <div class="strength-text" id="strength-text">Password strength</div>
+                                            <div class="error-message" id="password-error">Password must be at least 8 characters</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <div class="form-group">
+                                            <label for="imgUrl">Profile Image URL</label>
+                                            <div class="input-with-icon">
+                                                <input type="url" id="imgUrl" class="img-url" class="form-control" name="img" placeholder="https://example.com/photo.jpg">
+                                            </div>
+                                            <div class="error-message" id="image-error">Please enter a valid image URL</div>
+                                            
+                                            <div class="image-preview-container">
+                                                <div class="image-preview">
+                                                    <i class="fas fa-user"></i>
+                                                    <img src="" alt="Preview" class="preview-img">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn-add" name="update_member" >
+                                    <i class="fas fa-user-plus"></i> Update
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                 </div>
                 <!-- Logout Page -->
                 <div id="logout-page" class="page">
                     <div class="logout-container">
@@ -2023,94 +2382,94 @@
         });
     </script>
 
-    <script>
+<script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Password visibility toggle
-        const togglePassword = document.getElementById('togglePassword');
-        const password = document.getElementById('password');
-        const eyeIcon = togglePassword.querySelector('i');
+        const forms = document.querySelectorAll('.form');
 
-        togglePassword.addEventListener('click', function () {
-            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-            password.setAttribute('type', type);
-            eyeIcon.classList.toggle('fa-eye');
-            eyeIcon.classList.toggle('fa-eye-slash');
-        });
-
-        // Image preview
-        const imgUrl = document.getElementById('imgUrl');
-        const previewImg = document.getElementById('previewImg');
-        const imagePreview = document.getElementById('imagePreview');
-        const userIcon = imagePreview.querySelector('i');
-
-        imgUrl.addEventListener('input', function () {
-            if (this.value) {
-                previewImg.src = this.value;
-                previewImg.onload = function () {
-                    previewImg.style.display = 'block';
-                    userIcon.style.display = 'none';
-                };
-                previewImg.onerror = function () {
-                    previewImg.style.display = 'none';
-                    userIcon.style.display = 'block';
-                };
-            } else {
-                previewImg.style.display = 'none';
-                userIcon.style.display = 'block';
-            }
-        });
-
-        // Password strength
-        password.addEventListener('input', function () {
+        forms.forEach(form => {
+            const password = form.querySelector('.password-input');
+            const togglePassword = form.querySelector('.toggle-password');
+            const eyeIcon = togglePassword.querySelector('i');
+            const imgUrl = form.querySelector('.img-url');
+            const previewImg = form.querySelector('.preview-img');
+            const userIcon = form.querySelector('.image-preview i');
+            const strengthText = form.querySelector('.strength-text');
             const strengthBars = [
-                document.getElementById('strength-1'),
-                document.getElementById('strength-2'),
-                document.getElementById('strength-3'),
-                document.getElementById('strength-4')
+                form.querySelector('.strength-1'),
+                form.querySelector('.strength-2'),
+                form.querySelector('.strength-3'),
+                form.querySelector('.strength-4')
             ];
 
-            const strengthText = document.getElementById('strength-text');
-            const value = this.value;
-            let strength = 0;
-
-            strengthBars.forEach(bar => {
-                bar.style.width = '0';
-                bar.style.background = '#ef4444';
+            // Toggle password visibility
+            togglePassword.addEventListener('click', function () {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                eyeIcon.classList.toggle('fa-eye');
+                eyeIcon.classList.toggle('fa-eye-slash');
             });
 
-            if (value.length > 0) strength++;
-            if (value.length >= 8) strength++;
-            if (/[A-Z]/.test(value)) strength++;
-            if (/[0-9]/.test(value)) strength++;
-            if (/[^A-Za-z0-9]/.test(value)) strength++;
+            // Password strength logic
+            password.addEventListener('input', function () {
+                const value = password.value;
+                let strength = 0;
 
-            if (strength > 0) {
-                for (let i = 0; i < Math.min(strength, 4); i++) {
-                    strengthBars[i].style.width = '100%';
-                    if (strength >= 4) {
-                        strengthBars[i].style.background = '#22c55e';
-                        strengthText.textContent = 'Strong password';
-                        strengthText.style.color = '#22c55e';
-                    } else if (strength >= 3) {
-                        strengthBars[i].style.background = '#f59e0b';
-                        strengthText.textContent = 'Medium password';
-                        strengthText.style.color = '#f59e0b';
-                    } else {
-                        strengthBars[i].style.background = '#ef4444';
-                        strengthText.textContent = 'Weak password';
-                        strengthText.style.color = '#ef4444';
+                strengthBars.forEach(bar => {
+                    bar.style.width = '0';
+                    bar.style.background = '#ef4444';
+                });
+
+                if (value.length > 0) strength++;
+                if (value.length >= 8) strength++;
+                if (/[A-Z]/.test(value)) strength++;
+                if (/[0-9]/.test(value)) strength++;
+                if (/[^A-Za-z0-9]/.test(value)) strength++;
+
+                if (strength > 0) {
+                    for (let i = 0; i < Math.min(strength, 4); i++) {
+                        strengthBars[i].style.width = '100%';
+                        if (strength >= 4) {
+                            strengthBars[i].style.background = '#22c55e';
+                            strengthText.textContent = 'Strong password';
+                            strengthText.style.color = '#22c55e';
+                        } else if (strength >= 3) {
+                            strengthBars[i].style.background = '#f59e0b';
+                            strengthText.textContent = 'Medium password';
+                            strengthText.style.color = '#f59e0b';
+                        } else {
+                            strengthBars[i].style.background = '#ef4444';
+                            strengthText.textContent = 'Weak password';
+                            strengthText.style.color = '#ef4444';
+                        }
                     }
+                } else {
+                    strengthText.textContent = 'Password strength';
+                    strengthText.style.color = '#6c757d';
                 }
-            } else {
-                strengthText.textContent = 'Password strength';
-                strengthText.style.color = '#6c757d';
-            }
+            });
+
+            // Image preview logic
+            imgUrl.addEventListener('input', function () {
+                const url = imgUrl.value.trim();
+                if (url) {
+                    previewImg.src = url;
+                    previewImg.onload = function () {
+                        previewImg.style.display = 'block';
+                        userIcon.style.display = 'none';
+                    };
+                    previewImg.onerror = function () {
+                        previewImg.style.display = 'none';
+                        userIcon.style.display = 'block';
+                    };
+                } else {
+                    previewImg.style.display = 'none';
+                    userIcon.style.display = 'block';
+                }
+            });
         });
-
-        // Form validation
-
     });
-    </script>
+</script>
+
 
 </body>
 </html>
