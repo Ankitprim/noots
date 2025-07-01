@@ -70,15 +70,10 @@ if(isset($_GET['id'])){
 
 
  // trnding
-    $stmt2 = $conn->query("SELECT 
-            article.title AS title, 
-            tranding.id AS id, 
-            article.category AS category, 
-            author.username AS author, 
-            article.id AS article_id 
-        FROM tranding
-        JOIN article ON article.id = tranding.article_id
-        JOIN author ON article.author_id = author.id");
+    $min_time = date('Y-m-d H:i:s', strtotime('-7 days'));
+    // echo $min_time;
+    $stmt2 = $conn->prepare("SELECT id AS article_id, title, views, created_at FROM article WHERE created_at >= :date ORDER BY views DESC LIMIT 5");
+    $stmt2->bindParam(':date', $min_time, PDO::PARAM_STR);
     $stmt2->execute();
     $trandinglist = $stmt2->fetchall(PDO::FETCH_ASSOC);
 
@@ -196,10 +191,12 @@ if(isset($_GET['id'])){
             <div class="sidebar-section">
                 <h3 class="sidebar-title">Trending Now</h3>
                 <ul class="trending-list">
+                    <?php $i=1?>
                    <?php foreach($trandinglist as $list):?>
                          <a style="text-decoration:none"  href="<?php echo APPURL; ?>/article.php?id=<?php echo $list['article_id']; ?>&title= <?php echo $list['title']; ?>">                    
-                            <li><span class="trending-number"><?php echo $list['id']; ?></span><?php echo $list['title']; ?></li>
-                         </a>    
+                            <li><span class="trending-number"><?php echo $i; ?></span><?php echo $list['title']; ?></li>
+                         </a> 
+                         <?php $i++ ?>   
                     <?php endforeach; ?>     
                 </ul>
             </div>

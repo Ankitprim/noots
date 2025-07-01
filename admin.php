@@ -1400,10 +1400,10 @@
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     <span>Disclaimer</span>
                 </div>
-                <div class="menu-item" data-page="Tranding-page">
+                <!-- <div class="menu-item" data-page="Tranding-page">
                     <i class="fa-solid fa-ranking-star"></i>
                     <span>Tranding</span>
-                </div>
+                </div> -->
                 <div class="menu-item" data-page="authors-page">
                     <i class="fas fa-users"></i>
                     <span>Authors</span>
@@ -2222,9 +2222,6 @@
                 </div>
                 <!-- Update profile -->
                  <div id="update-page" class="page">
-                    <div class="page-title">
-                        <h1>Update Profile</h1>
-                    </div> 
                     <div class="card">
                         <div class="form-container">
                             <form class="form" method="post" action="">
@@ -2284,7 +2281,7 @@
                                 </div>
                                 
                                 <button type="submit" class="btn-add" name="update_member" >
-                                    <i class="fas fa-user-plus"></i> Update
+                                    <i class="fas fa-user-plus"></i> Update Profile
                                 </button>
                             </form>
                         </div>

@@ -11,15 +11,12 @@
     $alldiscl = $query1->fetchall(PDO::FETCH_OBJ);
 
  // trnding
-    $stmt2 = $conn->query("SELECT 
-            article.title AS title, 
-            tranding.id AS tranding_id, 
-            article.category AS category, 
-            author.username AS author, 
-            article.id AS article_id 
-        FROM tranding
-        JOIN article ON article.id = tranding.article_id
-        JOIN author ON article.author_id = author.id");
+    $min_time = date('Y-m-d H:i:s', strtotime('-7 days'));
+    $stmt2 = $conn->prepare("SELECT article.id AS article_id,
+     title, views,category, created_at,
+     author.username AS author
+     FROM article JOIN author ON article.author_id = author.id WHERE created_at >= :date ORDER BY views DESC LIMIT 5");
+    $stmt2->bindParam(':date', $min_time, PDO::PARAM_STR);
     $stmt2->execute();
     $trandinglist = $stmt2->fetchall(PDO::FETCH_ASSOC);
 
@@ -140,16 +137,18 @@
         <div class="sidebar">
             <h2 class="section-title">Trending Now</h2>
                 <ul class="trending-list">
+                    <?php  $i = 1; ?>
                     <?php foreach($trandinglist as $list): ?>
                         <li class="trending-item">
                             <a href="<?php echo APPURL; ?>/article.php?id=<?php echo $list['article_id']; ?>$title=<?php echo $list['title'] ?>">
-                                <div class="trending-number">#<?php echo $list['tranding_id']; ?></div>
+                                <div class="trending-number">#<?php echo $i ?></div>
                                 <div class="trending-content">
                                     <h4><?php echo $list['title']; ?></h4>
                                     <p><?php echo $list['category']; ?> · <?php echo $list['author']; ?></p>
                                 </div>
                             </a>
                         </li>
+                        <?php $i++; ?>
                     <?php endforeach; ?>
                 </ul>
 
