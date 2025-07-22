@@ -7,23 +7,41 @@ if (isset($_POST['submit'])) {
 
     $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
     $pass = $_POST['password'];
+    $role = $_POST['role'];
 
     try {
-        // Prepare the query
-        $stmt = $conn->prepare("SELECT * FROM author WHERE email = :email");
-        $stmt->bindParam(':email', $email);
-        $stmt->execute();
+        if(strtolower($role) === 'author'){
+            // Prepare the query
+            $stmt = $conn->prepare("SELECT * FROM author WHERE email = :email");
+            $stmt->bindParam(':email', $email);
+            $stmt->execute();
 
-        $user = $stmt->fetch(PDO::FETCH_OBJ);
+            $user = $stmt->fetch(PDO::FETCH_OBJ);
 
-        // Check if user exists and password matches
-        if ($user && password_verify($pass, $user->password)) {
-            $_SESSION['user_id'] = $user->id; // or similar
+            // Check if user exists and password matches
+            if ($user && password_verify($pass, $user->password)) {
+                $_SESSION['user_id'] = $user->id; // or similar
 
-            header("Location: /noots/dashboard.php"); // redirect after login
-            exit();
-        } else {
-            $error[] =  "Invalid email or password.";
+                header("Location: /noots/dashboard.php"); // redirect after login
+                exit();
+            } else {
+                $error[] =  "Invalid email or password.";
+            }
+        } else{
+            // prepare query
+            $stmt = $conn->prepare('SELECT * FROM admin WHERE email = :email');
+            $stmt->bindparam(':email', $email);
+            $stmt->execute();
+            
+            $user = $stmt->fetch(PDO::FETCH_OBJ);
+
+            if($user && password_verify($pass, $user->password)){
+                $_SESSION['user_id'] = $user->id;
+                header("Location: /noots/admin.php");
+                exit();
+            } else {
+                $error[] = "Invalid email or password";
+            }
         }
 
     } catch (PDOException $e) {
@@ -378,6 +396,17 @@ if (isset($_POST['submit'])) {
                         <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
                     </div>
                 </div>
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-pen-ruler"></i>
+                        <select id="role" class="form-control" name="role">
+                            <option value="">Select your role</option>
+                            <option value="author">Author</option>
+                            <option value="admin">Administrator</option>
+                        </select>
+                    </div>
+                </div>
 
                 <div class="options">
                     <div class="remember-me">
@@ -413,32 +442,5 @@ if (isset($_POST['submit'])) {
 
 <?php require 'foot.php' ;  ?>
 
-    <!-- <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const rememberMe = document.getElementById('remember').checked;
-            
-            // Basic validation
-            if (!email || !password) {
-                alert('Please fill in all fields');
-                return;
-            }
-            
-            // Simulate login process
-            console.log('Login attempt with:', { email, password, rememberMe });
-            
-            // Show loading state
-            const btn = this.querySelector('button');
-            const originalText = btn.textContent;
-            btn.textContent = 'Signing in...';
-            btn.disabled = true;
-            
-            // Simulate API call
-        
-        });
-    </script> -->
 </body>
 </html>
