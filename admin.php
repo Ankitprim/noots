@@ -13,7 +13,7 @@
     $admin = $query0->fetchall(PDO::FETCH_OBJ); 
     // var_dump($admin);
 
-    $limit = 5;
+    $limit = 10;
     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
     $offset = ($page - 1) * $limit;
 
@@ -71,6 +71,10 @@
         $stmt4 = $conn->prepare("SELECT * FROM categories ");
         $stmt4->execute();
         $categories_details = $stmt4->fetchAll(PDO::FETCH_OBJ);
+    // top-story
+        $stmt7i = $conn->prepare("SELECT article.id AS id, title, headlines.created_at AS created_at FROM article JOIN headlines ON article.id = headlines.article_id;");
+        $stmt7i->execute();
+        $headlines = $stmt7i->fetchAll(PDO::FETCH_OBJ);    
     // top-story
         $stmt7 = $conn->prepare("SELECT article.id AS id, title, top_story.created_at AS created_at FROM article JOIN top_story ON article.id = top_story.article_id;");
         $stmt7->execute();
@@ -141,6 +145,36 @@
 
         }
     }
+    //add headline
+    if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['headline'])){
+        $id = $_POST['headline_id'];
+        $stmt_h = $conn->prepare("INSERT INTO headlines (article_id) VALUES(:id)");
+        $stmt_h->execute([
+            ':id' => $id
+        ]);
+        header("Location: ". $_SERVER['PHP_SELF']);
+        exit;
+
+    }
+
+    // delete headline
+    if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_headline'])){
+        $deleteId  = (int) $_POST['headline_id'];
+        $stmt_H = $conn->prepare("DELETE FROM headlines WHERE article_id = :id");
+        $stmt_H->bindParam(':id', $deleteId, PDO::PARAM_INT);
+        if($stmt_H->execute()){
+            $_SESSION['flash_message'] = "Headline deleted successfully!";
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
+
+        } else {
+            $_SESSION['flash_message'] = "Failed to delete Headline.";
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
+
+        }
+    }
+
 
     //add top stroy
     if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['top-story'])){
@@ -1388,6 +1422,10 @@
                     <i class="fas fa-list"></i>
                     <span>Categories</span>
                 </div>
+                <div class="menu-item" data-page="headlines-page">
+                    <i class="fa-solid fa-heading"></i>
+                    <span>Headlines</span>
+                </div>
                 <div class="menu-item" data-page="top-stories-page">
                     <i class="fa-solid fa-window-restore"></i>
                     <span>Top Stories</span>
@@ -1803,6 +1841,83 @@
                                                 <form method="POST" action="" onsubmit="return confirm('Are you sure you want to delete this category?');">
                                                     <input type="hidden" name="delete_id" value="<?php echo $list->id; ?>">
                                                     <button class="action-btn" type="submit" name="delete_cat">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- headline Page -->
+                 <div id="headlines-page" class="page">
+                    <div class="page-title">
+                        <h1>Headlines Management</h1>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add Headline
+                        </button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Add Headline</h2>
+                        </div>
+                        <div class="form-container">
+                            <form action="" method="post">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="headine_id">Article Id</label>
+                                        <input type="number" id="headline_id" name="headline_id" placeholder="Enter article id...">
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button class="btn">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                    <button class="btn btn-primary" name="headline" type="submit">
+                                        <i class="fas fa-save"></i> Save Story
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>All Headlines (<?php echo count($headlines); ?>)</h2>
+                            <div>
+                                <button class="btn" onClick="window.location.reload()">
+                                    <i class="fas fa-sync"></i> Refresh
+                                </button>                              
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>id</th>
+                                        <th>title</th>
+                                        <th>Last Updated</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach($headlines as $list): ?>
+                                        <tr>
+                                            <td><?php echo $list->id; ?></td>
+                                            <td><?php echo $list->title;?>
+                                            </td>
+                                            <td><?php $formanted = date("d M Y", strtotime    ($list->created_at));
+                                                echo $formanted; ?>
+                                            </td>
+                                            <td>
+                                                <form method="POST" action="" onsubmit="return confirm('Are you sure you want to delete this headline?');">
+                                                    <input type="hidden" name="headline_id" value="<?php echo $list->id; ?>">
+                                                    <button class="action-btn" type="submit" name="delete_headline">
                                                         <i class="fas fa-trash-alt"></i>
                                                     </button>
                                                 </form>
