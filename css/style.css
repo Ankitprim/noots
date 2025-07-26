@@ -385,6 +385,13 @@ body {
     background: #d43b54;
 }
 
+.slider marquee {
+    color: var(--highlight-color);
+    font-size: small;
+    font-style: oblique;
+    font-weight: 600;
+}
+
 
 
 

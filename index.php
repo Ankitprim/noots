@@ -266,7 +266,9 @@
             <?php endforeach; ?>
 
         </div>
-
+        <div class="slider">
+                 <marquee behavior="" direction="left" > <?php foreach($alldiscl as $disclaimer){ echo $disclaimer->content;} ?></marquee>
+        </div> 
     </div>
 <footer>
     <?php require'./include/footer.php'; ?>
