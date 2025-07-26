@@ -37,7 +37,7 @@
     $stmt3 = $conn->query("SELECT article.title AS title, author.username AS author, article.id AS article_id, article.created_at AS created_at FROM article JOIN headlines ON article.id = article_id JOIN author ON article.author_id = author.id ORDER BY headlines.created_at DESC LIMIT 10;");
     $stmt3->execute();
     $headlines = $stmt3->fetchall(PDO::FETCH_ASSOC);
-    // var_dump($storylist);
+    // var_dump($headlines);
 
 
 
@@ -53,8 +53,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="icon.png">
     <!-- Primary Meta Tags -->
-    <title>noots</title>
+    <title>Noots</title>
     <meta name="title" content="noots">
     <meta name="description" content="noots is your trusted source for insightful blogs, trending articles, and the latest news across technology, lifestyle, health, education, and more.">
 
@@ -63,7 +64,7 @@
     <meta property="og:url" content="https://noots.great-site.net/">
     <meta property="og:title" content="noots">
     <meta property="og:description" content="Explore blogs, trending articles, and current news in various categories like tech, health, lifestyle, and more at noots.">
-    <meta property="og:image" content="https://yourwebsite.com/images/noots-preview.jpg">
+    <!-- <meta property="og:image" content="https://yourwebsite.com/images/noots-preview.jpg">~~ -->
     <meta property="og:site_name" content="noots">
 
     <!-- Twitter -->
@@ -71,7 +72,7 @@
     <meta name="twitter:url" content="https://noots.great-site.net/">
     <meta name="twitter:title" content="noots ">
     <meta name="twitter:description" content="Discover insightful blogs, hot articles, and up-to-date news from multiple fields on noots.">
-    <meta name="twitter:image" content="https://yourwebsite.com/images/noots-preview.jpg">
+    <!-- <meta name="twitter:image" content=""> -->
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./css/style.css">
@@ -98,7 +99,7 @@
                             <div class="headline-date"><?php $date =date("h:i A, d/M",strtotime($headline['created_at']));
                             echo $date;
                             ?></div>
-                             <a href="">
+                             <a href="article.php?id=<?php echo $headline['article_id'];?>&title=<?php echo $headline['title'];?>">
                                 <div class="headline-text"><?php echo $headline['title']; ?></div>
                              </a>
                             <div class="headline-author"><?php echo $headline['author'];?></div>

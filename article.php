@@ -90,6 +90,8 @@ if(isset($_GET['id'])){
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($article['title']);?></title>
+    <link rel="icon" type="image/x-icon" href="icon.png">
+
         <!-- Primary Meta Tags -->
     <meta name="title" content="noots">
     <!-- Open Graph / Facebook -->
