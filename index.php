@@ -30,6 +30,13 @@
     $stmt3->execute();
     $storylist = $stmt3->fetchall(PDO::FETCH_ASSOC);
 
+
+
+    
+ // headlines
+    $stmt3 = $conn->query("SELECT article.title AS title, author.username AS author, article.id AS article_id, article.created_at AS created_at FROM article JOIN headlines ON article.id = article_id JOIN author ON article.author_id = author.id ORDER BY headlines.created_at DESC LIMIT 10;");
+    $stmt3->execute();
+    $headlines = $stmt3->fetchall(PDO::FETCH_ASSOC);
     // var_dump($storylist);
 
 
@@ -69,6 +76,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./css/style.css">
     <link rel="stylesheet" href="./css/category.css">
+    <link rel="stylesheet" href="./css/headline.css">
 
 </head>
 
@@ -80,89 +88,114 @@
 
     <!-- Main Content -->
     <div class="container">
-        <div class="slider">
-            <?php foreach($alldiscl as $disclaimer):?>
-                 <marquee behavior="" direction="left" > <?php echo $disclaimer->content; ?></marquee>
-            <?php endforeach; ?>    
-        </div>  
+        <div class="headline-container">
+            <h2 class="section-title">Headlines</h2>
 
-    <div class="main-content">
-        <!-- Main Articles -->
-        <div class="articles">
-            <h2 class="section-title">Top Stories</h2>
-            <div class="articles-grid">
-                <?php foreach($storylist as $list): ?>
-                    <a href="article.php?id=<?php echo($list['article_id']);?>&title=<?php echo $list['title']; ?>">                         
-                        <div class="article-card">
-                            <img src="<?php echo $list['image']; ?>"
-                                alt="<?php echo $list['title']; ?>" class="article-img">
-                            <div class="article-content">
-                                <span class="article-category"><?php echo $list['category']; ?></span>
-                                <h3 class="article-title"><?php echo $list['title']; ?></h3>
-                                <p class="article-excerpt"><?php echo $list['description']; ?></p>
-                                <div class="article-meta">
-                                    <span><i class="far fa-user"></i> <?php echo $list['author']; ?></span>
-                                    <span><i class="far fa-clock"></i>
-                                        <?php 
-                                            $formattedDate = date("F j, Y", strtotime($list['created_at']));
-                                            echo $formattedDate;
-                                        ?>
-                                    </span>
-                                </div>
-                            </div>
+            <div class="carousel">
+                <div class="carousel-track">
+                    <?php foreach($headlines as $headline): ?>
+                        <div class="headline-item">
+                            <div class="headline-date"><?php $date =date("h:i A, d/M",strtotime($headline['created_at']));
+                            echo $date;
+                            ?></div>
+                             <a href="">
+                                <div class="headline-text"><?php echo $headline['title']; ?></div>
+                             </a>
+                            <div class="headline-author"><?php echo $headline['author'];?></div>
                         </div>
-                    </a>    
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                </div>
             </div>
+            
+            <div class="carousel-controls">
+                <button class="control-btn" id="prevBtn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                            <div class="pagination" id="pagination"></div>
+                <button class="control-btn" id="nextBtn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>        
+                
 
-            <h2 class="section-title">Health</h2>                
-            <div class="card-1-container">
-                <?php foreach($allarticle as $article): ?>
-                    <?php if($article['category'] == 'Health'): ?>
-                        <a href="article.php?id=<?php echo($article['id']);?>&name=<?php echo $article['title']; ?>">                    
-                            <div class="card-1">                   
-                                <div class="card-1-content">
-                                    <div>
-                                        <h3 class="card-title"><?php echo $article['title']; ?></h3>
+        <div class="main-content">
+            <!-- Main Articles -->
+            <div class="articles">
+                <h2 class="section-title">Top Stories</h2>
+                <div class="articles-grid">
+                    <?php foreach($storylist as $list): ?>
+                        <a href="article.php?id=<?php echo($list['article_id']);?>&title=<?php echo $list['title']; ?>">                         
+                            <div class="article-card">
+                                <img src="<?php echo $list['image']; ?>"
+                                    alt="<?php echo $list['title']; ?>" class="article-img">
+                                <div class="article-content">
+                                    <span class="article-category"><?php echo $list['category']; ?></span>
+                                    <h3 class="article-title"><?php echo $list['title']; ?></h3>
+                                    <p class="article-excerpt"><?php echo $list['description']; ?></p>
+                                    <div class="article-meta">
+                                        <span><i class="far fa-user"></i> <?php echo $list['author']; ?></span>
+                                        <span><i class="far fa-clock"></i>
+                                            <?php 
+                                                $formattedDate = date("F j, Y", strtotime($list['created_at']));
+                                                echo $formattedDate;
+                                            ?>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
-                        </a> 
-                    <?php endif; ?>
-                <?php endforeach; ?>
-            </div>       
-        </div>
-
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <h2 class="section-title">Trending Now</h2>
-                <ul class="trending-list">
-                    <?php  $i = 1; ?>
-                    <?php foreach($trandinglist as $list): ?>
-                        <li class="trending-item">
-                            <a href="<?php echo APPURL; ?>/article.php?id=<?php echo $list['article_id']; ?>$title=<?php echo $list['title'] ?>">
-                                <div class="trending-number">#<?php echo $i ?></div>
-                                <div class="trending-content">
-                                    <h4><?php echo $list['title']; ?></h4>
-                                    <p><?php echo $list['category']; ?> · <?php echo $list['author']; ?></p>
-                                </div>
-                            </a>
-                        </li>
-                        <?php $i++; ?>
+                        </a>    
                     <?php endforeach; ?>
-                </ul>
+                </div>
+
+                <h2 class="section-title">Health</h2>                
+                <div class="card-1-container">
+                    <?php foreach($allarticle as $article): ?>
+                        <?php if($article['category'] == 'Health'): ?>
+                            <a href="article.php?id=<?php echo($article['id']);?>&name=<?php echo $article['title']; ?>">                    
+                                <div class="card-1">                   
+                                    <div class="card-1-content">
+                                        <div>
+                                            <h3 class="card-title"><?php echo $article['title']; ?></h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a> 
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>       
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <h2 class="section-title">Trending Now</h2>
+                    <ul class="trending-list">
+                        <?php  $i = 1; ?>
+                        <?php foreach($trandinglist as $list): ?>
+                            <li class="trending-item">
+                                <a href="<?php echo APPURL; ?>/article.php?id=<?php echo $list['article_id']; ?>$title=<?php echo $list['title'] ?>">
+                                    <div class="trending-number">#<?php echo $i ?></div>
+                                    <div class="trending-content">
+                                        <h4><?php echo $list['title']; ?></h4>
+                                        <p><?php echo $list['category']; ?> · <?php echo $list['author']; ?></p>
+                                    </div>
+                                </a>
+                            </li>
+                            <?php $i++; ?>
+                        <?php endforeach; ?>
+                    </ul>
 
 
-            <div class="newsletter">
-                <h3>Subscribe to Our Newsletter</h3>
-                <p>Stay updated with our latest news and exclusive content delivered directly to your inbox.</p>
-                <form class="newsletter-form">
-                    <input type="email" placeholder="Your email address">
-                    <button type="submit">Subscribe</button>
-                </form>
+                <div class="newsletter">
+                    <h3>Subscribe to Our Newsletter</h3>
+                    <p>Stay updated with our latest news and exclusive content delivered directly to your inbox.</p>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Your email address">
+                        <button type="submit">Subscribe</button>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
 
 
 
@@ -215,7 +248,7 @@
             <?php endforeach; ?>        
         </div>
 
-    <h2 class="section-title">Culture</h2>                
+       <h2 class="section-title">Culture</h2>                
 
         <!-- Card Type 2: Title Overlay -->
         <div class="cards-grid">
@@ -239,6 +272,64 @@
     <?php require'./include/footer.php'; ?>
 
 </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const track = document.querySelector('.carousel-track');
+            const items = document.querySelectorAll('.headline-item');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const pagination = document.getElementById('pagination');
+            const itemCount = items.length;
+            let currentIndex = 0;
+            
+            // Create pagination dots
+            for (let i = 0; i < itemCount; i++) {
+                const dot = document.createElement('div');
+                dot.classList.add('pagination-dot');
+                if (i === 0) dot.classList.add('active');
+                dot.dataset.index = i;
+                pagination.appendChild(dot);
+            }
+            
+            const dots = document.querySelectorAll('.pagination-dot');
+            
+            // Update carousel position
+            function updateCarousel() {
+                track.style.transform = `translateX(-${currentIndex * 100}%)`;
+                
+                // Update active dot
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle('active', index === currentIndex);
+                });
+            }
+            
+            // Next button click
+            nextBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex + 1) % itemCount;
+                updateCarousel();
+            });
+            
+            // Previous button click
+            prevBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex - 1 + itemCount) % itemCount;
+                updateCarousel();
+            });
+            
+            // Pagination dot click
+            dots.forEach(dot => {
+                dot.addEventListener('click', () => {
+                    currentIndex = parseInt(dot.dataset.index);
+                    updateCarousel();
+                });
+            });
+            
+            // Auto-advance carousel
+            setInterval(() => {
+                currentIndex = (currentIndex + 1) % itemCount;
+                updateCarousel();
+            }, 5000);
+        });
+    </script>
 </body>
 
 </html>

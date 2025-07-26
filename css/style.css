@@ -31,24 +31,13 @@ body {
     padding: 0 30px;
 }
 
-.slider {
-    margin-top: 1rem;
-}
-
-.slider marquee {
-    color: var(--highlight-color);
-    font-size: small;
-    font-style: oblique;
-    font-weight: 300;
-}
-
 /* Main Layout */
 .main-content {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 30px;
     margin-bottom: 40px;
-    margin-top: 1rem;
+    
 }
 
 
